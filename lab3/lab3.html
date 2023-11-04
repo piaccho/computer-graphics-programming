@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>WDGK - Sebastian Piaskowy - Lab 3</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link rel=stylesheet href="css/base.css" />
+</head>
+
+<body>
+
+	<script src="three.js"></script>
+	<script src="ParametricGeometries.js"></script>
+	<script src="CurveExtras.js"></script>
+	<script src="Detector.js"></script>
+	<script src="stats.js"></script>
+	<script src="OrbitControls.js"></script>
+	<script src="THREEx.KeyboardState.js"></script>
+	<script src="THREEx.FullScreen.js"></script>
+	<script src="THREEx.WindowResize.js"></script>
+	<script src="dat.gui.js"></script>
+
+	<!-- jQuery code to display an information button and box when clicked. -->
+	<script src="jquery-1.9.1.js"></script>
+	<script src="jquery-ui.js"></script>
+	<link rel=stylesheet href="jquery-ui.css" />
+	<link rel=stylesheet href="info.css" />
+	<script src="info.js"></script>
+	<div id="infoButton"></div>
+	<div id="infoBox" title="Demo Information">
+		This three.js demo is part of a collection at
+		<a href="http://stemkoski.github.io/Three.js/">http://stemkoski.github.io/Three.js/</a>
+	</div>
+	<!-- ------------------------------------------------------------ -->
+
+	<div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
+	<script>
+
+		/*
+			Three.js "tutorials by example"
+			Author: Lee Stemkoski
+			Date: July 2013 (three.js v59dev)
+		*/
+
+		// MAIN
+
+		// standard global variables
+		var container, scene, camera, renderer, ctr, stats;
+		var keyboard = new THREEx.KeyboardState();
+		var clock = new THREE.Clock();
+
+		// custom global variables
+		var mirrorCube, mirrorCubeCamera; // for mirror material
+		var mirrorSphere, mirrorSphereCamera; // for mirror material
+		var basicPolyhedron;
+		var bumpCube;
+		var torus;
+
+		init();
+		animate();
+
+		// FUNCTIONS 		
+		function init() {
+			// SCENE
+			scene = new THREE.Scene();
+			// CAMERA
+			var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+			var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+			camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+			scene.add(camera);
+			// camera.position.set(600, 350, 600);
+			camera.position.set(600, 150, 300);
+			camera.lookAt(scene.position);
+			// RENDERER
+			if (Detector.webgl)
+				renderer = new THREE.WebGLRenderer({ antialias: true });
+			else
+				renderer = new THREE.CanvasRenderer();
+			renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+			renderer.shadowMap.enabled = true;
+			container = document.getElementById('ThreeJS');
+			container.appendChild(renderer.domElement);
+			// EVENTS
+			THREEx.WindowResize(renderer, camera);
+			THREEx.FullScreen.bindKey({ charCode: 'm'.charCodeAt(0) });
+			// CONTROLS
+			ctr = new THREE.OrbitControls(camera, renderer.domElement);
+			// STATS
+			stats = new Stats();
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.bottom = '0px';
+			stats.domElement.style.zIndex = 100;
+			container.appendChild(stats.domElement);
+			// LIGHT
+			var light = new THREE.PointLight(0xffffff);
+			light.position.set(0, 250, 0);
+			scene.add(light);
+			// FLOOR
+			var floorTexture = new THREE.TextureLoader().load('textures/stone.jpg');
+			floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+			floorTexture.repeat.set(5, 5);
+			var floorMaterial = new THREE.MeshBasicMaterial({ map: floorTexture, side: THREE.BackSide });
+			var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+			var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+			floor.position.y = -0.5;
+			floor.rotation.x = Math.PI / 2;
+			scene.add(floor);
+
+			// SKYBOX/FOG
+			// skybox 1
+			var materialArray1 = [];
+			materialArray1.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/dawnmountain-xpos.png') }));
+			materialArray1.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/dawnmountain-xneg.png') }));
+			materialArray1.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/dawnmountain-ypos.png') }));
+			materialArray1.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/dawnmountain-yneg.png') }));
+			materialArray1.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/dawnmountain-zpos.png') }));
+			materialArray1.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/dawnmountain-zneg.png') }));
+			for (var i = 0; i < 6; i++)
+				materialArray1[i].side = THREE.BackSide;
+			var skyboxMaterial1 = new THREE.MeshFaceMaterial(materialArray1);
+
+			// skybox 2
+			var materialArray2 = [];
+			materialArray2.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/DarkSea-xpos.jpg') }));
+			materialArray2.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/DarkSea-xneg.jpg') }));
+			materialArray2.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/DarkSea-ypos.jpg') }));
+			materialArray2.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/DarkSea-yneg.jpg') }));
+			materialArray2.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/DarkSea-zpos.jpg') }));
+			materialArray2.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/DarkSea-zneg.jpg') }));
+			for (var i = 0; i < 6; i++)
+				materialArray2[i].side = THREE.BackSide;
+			var skyboxMaterial2 = new THREE.MeshFaceMaterial(materialArray2);
+
+			var skyboxGeom = new THREE.BoxGeometry(5000, 5000, 5000, 64, 64, 64);
+			var skybox = new THREE.Mesh(skyboxGeom, skyboxMaterial1);
+			scene.add(skybox);
+
+			////////////
+			// CUSTOM //
+			////////////
+
+
+			// MIRROR CUBE
+			var cubeGeom = new THREE.CubeGeometry(30, 200, 200, 100, 100, 100);
+			mirrorCubeCamera = new THREE.CubeCamera(0.1, 5000, 2048);
+			// mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+			scene.add(mirrorCubeCamera);
+			var cubeGeomTexture = new THREE.MeshPhongMaterial({
+				map: THREE.ImageUtils.loadTexture("textures/metal-floor.jpg"),
+				normalMap: THREE.ImageUtils.loadTexture("textures/metal-floor-normal.jpg")
+			});
+			var cubeGeomMaterials = [
+				new THREE.MeshBasicMaterial({ envMap: mirrorCubeCamera.renderTarget }),  // mirror
+				new THREE.MeshBasicMaterial({ envMap: mirrorCubeCamera.renderTarget }), // mirror
+				cubeGeomTexture,
+				cubeGeomTexture,
+				cubeGeomTexture,
+				cubeGeomTexture,
+			];
+			var mirrorCubeMaterial = new THREE.MeshFaceMaterial(cubeGeomMaterials);
+			mirrorCube = new THREE.Mesh(cubeGeom, mirrorCubeMaterial);
+			mirrorCube.position.set(-75, 50, 0);
+			mirrorCubeCamera.position.set(-75, 50, 0);
+			mirrorCube.rotation.y = -0.4;
+			mirrorCube.receiveShadow = true;
+			scene.add(mirrorCube);
+
+			// MIRROR SPHERE
+			var sphereGeom = new THREE.SphereGeometry(50, 32, 16); // radius, segmentsWidth, segmentsHeight
+			mirrorSphereCamera = new THREE.CubeCamera(0.1, 5000, 2048);
+			// mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+			scene.add(mirrorSphereCamera);
+			var mirrorSphereMaterial = new THREE.MeshBasicMaterial({ envMap: mirrorSphereCamera.renderTarget });
+			mirrorSphere = new THREE.Mesh(sphereGeom, mirrorSphereMaterial);
+			mirrorSphere.position.set(200, 50, 0);
+			//mirrorSphereCamera.position = mirrorSphere.position;
+			mirrorSphereCamera.position.set(75, 50, 0);
+			mirrorSphere.receiveShadow = true;
+			scene.add(mirrorSphere);
+
+			// BASIC POLYHEDRON
+			basicPolyhedron = createMesh(new THREE.IcosahedronGeometry(20, 0), "brick-wall.jpg");
+			basicPolyhedron.position.set(80, 50, 0);
+			basicPolyhedron.receiveShadow = true;
+			scene.add(basicPolyhedron);
+
+			// BUMP CUBE
+			bumpCube = createMesh(new THREE.CubeGeometry(60, 60, 60), "bathroom.jpg", "bathroom-normal.jpg");
+			bumpCube.rotation.y = 0.5;
+			bumpCube.position.set(80, 50, 100);
+			bumpCube.receiveShadow = true;
+			scene.add(bumpCube);
+
+			// TRANSPARENT TORUS
+			var torusTexture = THREE.ImageUtils.loadTexture("textures/checkerboard.jpg");
+			var torusMaterial = new THREE.MeshBasicMaterial({
+				map: torusTexture,
+				transparent: true,
+				opacity: 0.5
+			});
+			var torusGeometry = new THREE.TorusGeometry(30, 15, 64, 256);
+			torus = new THREE.Mesh(torusGeometry, torusMaterial);
+			torus.position.set(300, 20, 100);
+			torus.castShadow = true;
+			torus.receiveShadow = true;
+			scene.add(torus);
+
+			// POINT LIGHT
+			var sphereLight = new THREE.SphereGeometry(5, 64, 64);
+			var sphereLightMaterial = new THREE.MeshBasicMaterial({ color: 0x1AF80E });
+			sphereLightMaterial.opacity = 0.5;
+			var sphereLightMesh = new THREE.Mesh(sphereLight, sphereLightMaterial);
+			sphereLightMesh.castShadow = true;
+			sphereLightMesh.position.set(300, 20, 100);
+			scene.add(sphereLightMesh);
+
+			var light = new THREE.PointLight(0x1AF80E, 10, 0, 2);
+			light.position.set(300, 20, 100);
+			scene.add(light);
+
+			// setup the control gui
+			var controls = new function () {
+				this.changeSkybox = "DarkSea";
+				this.changeSkybox = (e) => {
+					switch (e) {
+						case "DawnMountain":
+							skybox.material = skyboxMaterial1;
+							break;
+						case "DarkSea":
+							skybox.material = skyboxMaterial2;
+							break;
+					}
+				}
+			};
+			var gui = new dat.GUI();
+			gui.add(controls, "changeSkybox", ['DawnMountain', 'DarkSea']).onChange(controls.changeSkybox);
+
+		}
+
+		function createMesh(geom, imageFile, normal) {
+
+			if (normal) {
+				var t = THREE.ImageUtils.loadTexture("textures/" + imageFile);
+				var m = THREE.ImageUtils.loadTexture("textures/" + normal);
+				var mat2 = new THREE.MeshPhongMaterial({
+					map: t,
+					normalMap: m
+				});
+				var mesh = new THREE.Mesh(geom, mat2);
+				return mesh;
+			} else {
+				var t = THREE.ImageUtils.loadTexture("textures/" + imageFile);
+				var mat1 = new THREE.MeshPhongMaterial({
+					map: t
+				})
+				var mesh = new THREE.Mesh(geom, mat1);
+				return mesh;
+			}
+
+			return mesh;
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+			render();
+			update();
+		}
+
+		function update() {
+			if (keyboard.pressed("z")) {
+				// do something
+			}
+
+			ctr.update();
+			stats.update();
+		}
+
+		function render() {
+			var elapsedTime = clock.getElapsedTime();
+			// move the CubeCamera to the position of the object
+			//    that has a reflective surface, "take a picture" in each direction
+			//    and apply it to the surface.
+			// need to hide surface before and after so that it does not
+			//    "get in the way" of the camera
+			mirrorCube.visible = false;
+			mirrorCubeCamera.updateCubeMap(renderer, scene);
+			mirrorCube.visible = true;
+
+			mirrorCube.position.x = 150 * Math.sin(elapsedTime) - 150;
+			mirrorCube.position.z = (150 * Math.sin(elapsedTime) - 150) * 0.5;
+			// mirrorCube.rotation.y -= Math.cos(elapsedTime)*0.005;
+			// sign = Math.floor(elapsedTime / Math.PI) % 2 == 0 ? 1 : -1;
+			// mirrorCube.rotation.y -= (elapsedTime % Math.PI) * sign * 0.001;
+
+			mirrorSphere.visible = false;
+			mirrorSphereCamera.updateCubeMap(renderer, scene);
+			mirrorSphere.visible = true;
+
+			basicPolyhedron.position.z = 50 * Math.sin(elapsedTime);
+			bumpCube.rotation.y += 0.01;
+			torus.rotation.y += 0.01;
+			torus.rotation.x += 0.01;
+			// camera.position.x += Math.cos(elapsedTime)*4;
+			// camera.position.z += Math.sin(elapsedTime)*4;
+
+			//torus.visible = false;
+			//mirrorTorusCamera.updateCubeMap( renderer, scene );
+			//torus.visible = true;
+
+			renderer.render(scene, camera);
+		}
+
+	</script>
+
+</body>
+
+</html>
