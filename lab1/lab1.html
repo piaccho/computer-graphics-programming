@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!-- It's the HTML5 standard. -->
+
+<html>
+
+<head>
+    <title>Example 01 - triangle and square</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+
+    <!-- The following meta line optimizes the site for mobile devices. 
+		 It sets the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1" />
+    <style type="text/css">
+        body {
+            /* Set the background color of the HTML page to black */
+            background-color: #000000;
+
+            /* Hide oversized content. This prevents the scroll bars. */
+            overflow: hidden;
+        }
+    </style>
+    <!-- Include Three.js library -->
+    <script src="three.js"></script>
+</head>
+
+<body>
+    <!-- This is the DIV element which will contain the WebGL canvas. To be identifiable later on, the id 'WebGLCanvas' is applied to it. -->
+    <div id="WebGLCanvas"></div>
+
+    <!-- This JavaScript block encloses the Three.js commands -->
+    <script>
+        // Global scene object
+        var scene;
+
+        // Global camera object
+        var camera;
+
+        // Global tree objects
+        var treeMesh;
+        var treeMesh2;
+        var treeMesh3;
+        var treeTrunkMesh;
+
+        // Global car body object
+        var carBodyMesh;
+
+        // Global car wheels objects
+        var carWheelMesh1;
+        var carWheelMesh2;
+
+        // Initialize the scene
+        initializeScene();
+
+        // Animate the scene
+        animateScene();
+
+        /**
+         * Initialize the scene.
+         */
+        function initializeScene() {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setClearColor(0x000000, 1);
+
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+
+            renderer.setSize(canvasWidth, canvasHeight);
+
+            document.getElementById("WebGLCanvas").appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(
+                45,
+                canvasWidth / canvasHeight,
+                1,
+                100
+            );
+            camera.position.set(0, 10, 10);
+            camera.lookAt(scene.position);
+            scene.add(camera);
+
+            var triangleGeometry = new THREE.Geometry();
+            triangleGeometry.vertices.push(new THREE.Vector3(0.0, 1.0, 0.0));
+            triangleGeometry.vertices.push(new THREE.Vector3(-1.0, -1.0, 0.0));
+            triangleGeometry.vertices.push(new THREE.Vector3(1.0, -1.0, 0.0));
+            triangleGeometry.faces.push(new THREE.Face3(0, 1, 2));
+
+            var triangleMaterial = new THREE.MeshBasicMaterial({
+                color: 0x0ce813,
+                side: THREE.DoubleSide,
+            });
+
+            var squareGeometry = new THREE.Geometry();
+            squareGeometry.vertices.push(new THREE.Vector3(-1.0, 1.0, 0.0));
+            squareGeometry.vertices.push(new THREE.Vector3(1.0, 1.0, 0.0));
+            squareGeometry.vertices.push(new THREE.Vector3(1.0, -1.0, 0.0));
+            squareGeometry.vertices.push(new THREE.Vector3(-1.0, -1.0, 0.0));
+            squareGeometry.faces.push(new THREE.Face3(0, 1, 2));
+            squareGeometry.faces.push(new THREE.Face3(0, 2, 3));
+
+            var squareMaterial = new THREE.MeshBasicMaterial({
+                color: 0xedca85,
+                side: THREE.DoubleSide,
+            });
+
+            // House 
+            var houseMesh = new THREE.Mesh(squareGeometry, squareMaterial);
+            houseMesh.position.set(1.5, 0.0, 4.0);
+            scene.add(houseMesh);
+            houseMesh.position.set(2, 0, 0);
+
+            // House Roof
+            var roofMesh = new THREE.Mesh(
+                triangleGeometry,
+                new THREE.MeshBasicMaterial({
+                    color: 0xff0000,
+                    side: THREE.DoubleSide,
+                })
+            );
+            scene.add(roofMesh);
+            roofMesh.position.set(2, 2, 0);
+
+            // Tree 3 parts
+            treeMesh = new THREE.Mesh(triangleGeometry, triangleMaterial);
+            treeMesh2 = treeMesh.clone();
+            treeMesh3 = treeMesh.clone();
+            scene.add(treeMesh);
+            scene.add(treeMesh2);
+            scene.add(treeMesh3);
+
+            treeMesh.position.set(-2, 0, -5);
+            treeMesh2.position.set(-2, 1, -5);
+            treeMesh3.position.set(-2, 2, -5);
+
+            // Tree trunk
+            treeTrunkMesh = new THREE.Mesh(
+                squareGeometry,
+                new THREE.MeshBasicMaterial({
+                    color: 0x4f1904,
+                    side: THREE.DoubleSide,
+                })
+            );
+            scene.add(treeTrunkMesh);
+            treeTrunkMesh.position.set(-2, -1.5, -5);
+            treeTrunkMesh.scale.set(0.5, 0.5, 0.5);
+
+
+            // Car body
+            var carBodyGeometry = new THREE.Geometry();
+            carBodyGeometry.vertices.push(new THREE.Vector3(-2, 1, 0));
+            carBodyGeometry.vertices.push(new THREE.Vector3(1, 1, 0));
+            carBodyGeometry.vertices.push(new THREE.Vector3(1, -1, 0));
+            carBodyGeometry.vertices.push(new THREE.Vector3(-2, -1, 0));
+            carBodyGeometry.faces.push(new THREE.Face3(0, 1, 2));
+            carBodyGeometry.faces.push(new THREE.Face3(0, 2, 3));
+
+            var carBodyMaterial = new THREE.MeshBasicMaterial({
+                color: 0x1800f5,
+                side: THREE.DoubleSide,
+            });
+
+            carBodyMesh = new THREE.Mesh(carBodyGeometry, carBodyMaterial);
+            carBodyMesh.position.set(1.5, 0.0, 4.0);
+            scene.add(carBodyMesh);
+
+            carBodyMesh.position.set(3, 0, 4);
+
+            // Car wheels
+            var carWheelGeometry = new THREE.CircleGeometry(0.5, 32);
+            var carWheelMaterial = new THREE.MeshBasicMaterial({
+                color: 0x3e3d47,
+                side: THREE.DoubleSide,
+            });
+            carWheelMesh1 = new THREE.Mesh(carWheelGeometry, carWheelMaterial);
+            carWheelMesh2 = new THREE.Mesh(carWheelGeometry, carWheelMaterial);
+            scene.add(carWheelMesh1);
+            scene.add(carWheelMesh2);
+            carWheelMesh1.position.set(1.5, -1.5, 4);
+            carWheelMesh2.position.set(3.5, -1.5, 4);
+
+            // Cylinder Tree
+            var cylinderTreeGeometry = new THREE.CylinderGeometry(0, 1, 1.5, 32, false); 
+            var cylinderTreeTrunkGeometry = new THREE.CylinderGeometry(1, 1, 1.5, 32, false); 
+
+            var cylinderTreeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x025202,
+                side: THREE.DoubleSide,
+            });
+            var cylinderTreeMaterial3 = new THREE.MeshBasicMaterial({
+                color: 0x017301,
+                side: THREE.DoubleSide,
+            });
+            var cylinderTreeMaterial2 = new THREE.MeshBasicMaterial({
+                color: 0x015c01,
+                side: THREE.DoubleSide,
+            });
+
+            cylinderTreeMesh = new THREE.Mesh(cylinderTreeGeometry, cylinderTreeMaterial);
+            cylinderTreeMesh2 = new THREE.Mesh(cylinderTreeGeometry, cylinderTreeMaterial2);
+            cylinderTreeMesh3 = new THREE.Mesh(cylinderTreeGeometry, cylinderTreeMaterial3);
+            cylinderTrunkMesh = new THREE.Mesh(
+                cylinderTreeTrunkGeometry,
+                new THREE.MeshBasicMaterial({
+                    color: 0x4f1904,
+                    side: THREE.DoubleSide,
+                })
+            );
+            scene.add(cylinderTreeMesh);
+            scene.add(cylinderTreeMesh2);
+            scene.add(cylinderTreeMesh3);
+            scene.add(cylinderTrunkMesh);
+
+            cylinderTreeMesh.position.set(-4, 0, 0);
+            cylinderTreeMesh2.position.set(-4, 1, 0);
+            cylinderTreeMesh3.position.set(-4, 2, 0);
+            cylinderTrunkMesh.position.set(-4, -1.5, 0);
+            cylinderTrunkMesh.scale.set(0.5, 0.5, 0.5);
+            
+        }
+        /**
+         * Animate the scene and call rendering.
+         */
+        function animateScene() {
+            carBodyMesh.position.x -= 0.025;
+            carWheelMesh1.position.x -= 0.025;
+            carWheelMesh2.position.x -= 0.025;
+            treeMesh.rotation.y += 0.05;
+            treeMesh2.rotation.y += 0.05;
+            treeMesh3.rotation.y += 0.05;
+            treeTrunkMesh.rotation.y += 0.05;
+
+            requestAnimationFrame(animateScene);
+
+            renderScene();
+        }
+
+        function renderScene() {
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
