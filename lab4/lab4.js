@@ -94,10 +94,25 @@ animate();
 
 function init() {
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xa516b8, 0, 750);
+    // scene.fog = new THREE.Fog(0xa516b8, 0, 750);
+
+    // SKYBOX
+    var materialArray = [];
+    materialArray.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/skyblue-xpos.png') }));
+    materialArray.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/skyblue-xneg.png') }));
+    materialArray.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/skyblue-ypos.png') }));
+    materialArray.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/skyblue-yneg.png') }));
+    materialArray.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/skyblue-zpos.png') }));
+    materialArray.push(new THREE.MeshBasicMaterial({ map: THREE.ImageUtils.loadTexture('textures/skyblue-zneg.png') }));
+    for (var i = 0; i < 6; i++)
+        materialArray[i].side = THREE.BackSide;
+    var skyboxMaterial = new THREE.MeshFaceMaterial(materialArray);
+    var skyboxGeom = new THREE.BoxGeometry(10000, 10000, 10000, 64, 64, 64);
+    var skybox = new THREE.Mesh(skyboxGeom, skyboxMaterial);
+    scene.add(skybox);
 
     var light = new THREE.DirectionalLight(0xa516b82, 1.5);
     light.position.set(1, 1, 1);
@@ -115,7 +130,7 @@ function init() {
 
     // floor
 
-    geometry = new THREE.PlaneGeometry(2000, 2000, 100, 100);
+    geometry = new THREE.PlaneGeometry(5000, 5000, 100, 100);
     geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI / 2));
 
     for (var i = 0, l = geometry.vertices.length; i < l; i++) {
