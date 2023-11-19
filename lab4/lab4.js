@@ -169,7 +169,7 @@ function init() {
     }
 
     // CROSSHAIR
-    var maskTexture = new THREE.TextureLoader().load("crosshair.png");
+    var maskTexture = new THREE.TextureLoader().load("textures/crosshair.png");
     var maskGeometry = new THREE.PlaneGeometry(1, 1);
     var maskMaterial = new THREE.MeshBasicMaterial({ map: maskTexture, transparent: true });
     var mask = new THREE.Mesh(maskGeometry, maskMaterial);
