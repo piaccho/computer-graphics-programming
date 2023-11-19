@@ -97,13 +97,13 @@ function init() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xffffff, 0, 750);
+    scene.fog = new THREE.Fog(0xa516b8, 0, 750);
 
-    var light = new THREE.DirectionalLight(0xffffff, 1.5);
+    var light = new THREE.DirectionalLight(0xa516b82, 1.5);
     light.position.set(1, 1, 1);
     scene.add(light);
 
-    var light = new THREE.DirectionalLight(0xffffff, 0.75);
+    var light = new THREE.DirectionalLight(0xa516b8, 0.75);
     light.position.set(-1, - 0.5, -1);
     scene.add(light);
 
@@ -130,9 +130,9 @@ function init() {
     for (var i = 0, l = geometry.faces.length; i < l; i++) {
 
         var face = geometry.faces[i];
-        face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-        face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-        face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
+        face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.25);
+        face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.25);
+        face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.25);
 
     }
 
@@ -148,9 +148,9 @@ function init() {
     for (var i = 0, l = geometry.faces.length; i < l; i++) {
 
         var face = geometry.faces[i];
-        face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-        face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-        face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
+        face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.75);
+        face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.75);
+        face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.75);
     }
 
     for (var i = 0; i < 500; i++) {
@@ -163,37 +163,66 @@ function init() {
         mesh.position.z = Math.floor(Math.random() * 20 - 10) * 20;
         scene.add(mesh);
 
-        material.color.setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
+        material.color.setHSL(Math.random() * 0.2 + 0.1, 0.75, Math.random() * 0.25 + 0.75);
 
-        objects.push(mesh);
+        objects.push(mesh);``
     }
 
+    // CROSSHAIR
+    var maskTexture = new THREE.TextureLoader().load("crosshair.png");
+    var maskGeometry = new THREE.PlaneGeometry(1, 1);
+    var maskMaterial = new THREE.MeshBasicMaterial({ map: maskTexture, transparent: true });
+    var mask = new THREE.Mesh(maskGeometry, maskMaterial);
+    mask.position.set(0, 0, -10);
+    camera.add(mask);
 
-    // mask / gun
-    // var maskTexture = new THREE.TextureLoader().load("maskaa.png");
-    // var maskGeometry = new THREE.PlaneGeometry(5, 5);
-    // var maskMaterial = new THREE.MeshBasicMaterial({ map: maskTexture, transparent: true });
-    // var mask = new THREE.Mesh(maskGeometry, maskMaterial);
+    // HAND WITH GUN
+    var gunBodyMaterial = new THREE.MeshBasicMaterial({ color: 0x615e5a, transparent: true,  });
+    var gunDetailMaterial = new THREE.MeshBasicMaterial({ color: 0x2b2b2a, transparent: true });
+    var handMaterial = new THREE.MeshBasicMaterial({ color: 0xbf9469, transparent: true });
 
-    // mask.position.x = 0;
-    // mask.position.y = 1;
-    // mask.position.z = -1.3;
-    // //scene.add(myBox);
-    // camera.add(mask);
+    var gunBody1Geometry = new THREE.BoxGeometry(0.5, 0.5, 3);
+    var gunBody1 = new THREE.Mesh(gunBody1Geometry, gunBodyMaterial);
+    gunBody1.position.set(3, -2, -6);
+    const line1 = new THREE.LineSegments(new THREE.EdgesGeometry(gunBody1Geometry), new THREE.LineBasicMaterial({ color: 0x000000}));
+    line1.position.copy(gunBody1.position);
+    line1.scale.set(1.001, 1.001, 1.001);
+    
+    var gunBody2Geometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+    var gunBody2 = new THREE.Mesh(gunBody2Geometry, gunBodyMaterial); 
+    gunBody2.position.set(3, -3.3, -5);
+    const line2 = new THREE.LineSegments(new THREE.EdgesGeometry(gunBody2Geometry), new THREE.LineBasicMaterial({ color: 0x000000 }));
+    line2.position.copy(gunBody2.position);
+    line2.scale.set(1.001, 1.001, 1.001);
 
-    // var gunTexture = new THREE.TextureLoader().load("gun.png");
-    var gunGeometry = new THREE.BoxGeometry(1, 1, 10);
-    var gunMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true });
-    var gun = new THREE.Mesh(gunGeometry, gunMaterial);
+    var gunDetail1Geometry = new THREE.BoxGeometry(0.05, 0.1, 0.2);
+    var gunDetail1 = new THREE.Mesh(gunDetail1Geometry, gunDetailMaterial);
+    gunDetail1.position.set(3, -1.7, -7.2);
+    var gunDetail2Geometry = new THREE.BoxGeometry(0.05, 0.1, 0.1);
+    var gunDetail2 = new THREE.Mesh(gunDetail2Geometry, gunDetailMaterial);
+    gunDetail2.position.set(2.9, -1.75, -4.7);
+    var gunDetail3Geometry = new THREE.BoxGeometry(0.05, 0.1, 0.1);
+    var gunDetail3 = new THREE.Mesh(gunDetail3Geometry, gunDetailMaterial);
+    gunDetail3.position.set(3.1, -1.75, -4.7);
 
-    gun.position.x = 10;
-    gun.position.y = -5;
-    gun.position.z = -15.3;
-    //scene.add(myBox);
-    camera.add(gun);
+    var handGeometry = new THREE.BoxGeometry(1, 1, 3);
+    var hand = new THREE.Mesh(handGeometry, handMaterial);
+    hand.position.set(3, -2.75, -4);
+    const line3 = new THREE.LineSegments(new THREE.EdgesGeometry(handGeometry), new THREE.LineBasicMaterial({ color: 0x99744e }));
+    line3.position.copy(hand.position);
+    line3.scale.set(1.001, 1.001, 1.001);
 
-    //
+    camera.add(gunBody1);
+    camera.add(line1);
+    camera.add(gunBody2);
+    camera.add(line2);
+    camera.add(gunDetail1);
+    camera.add(gunDetail2);
+    camera.add(gunDetail3);
+    camera.add(hand);
+    camera.add(line3);
 
+    
     renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(0xffffff);
     renderer.setSize(window.innerWidth, window.innerHeight);
